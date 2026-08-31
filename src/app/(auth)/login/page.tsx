@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Zap, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, Zap } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,31 +23,26 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-
     if (authError) {
       setError("Email ou mot de passe incorrect.");
       setLoading(false);
       return;
     }
-
     router.push(redirectTo);
     router.refresh();
   }
 
   async function handleGoogleLogin() {
     setLoading(true);
-await supabase.auth.signInWithOAuth({
-  provider: "google",
-  options: {
-    redirectTo: `${window.location.origin}/auth/callback`,
-    queryParams: {
-      access_type: "offline",
-      prompt: "consent",
-    },
-  },
-});
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: { access_type: "offline", prompt: "consent" },
+      },
+    });
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -71,12 +66,7 @@ await supabase.auth.signInWithOAuth({
             </div>
           )}
 
-          {/* Google OAuth */}
-          <button
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className="btn-secondary w-full justify-center mb-6 gap-3"
-          >
+          <button onClick={handleGoogleLogin} disabled={loading} className="btn-secondary w-full justify-center mb-6 gap-3">
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -95,36 +85,19 @@ await supabase.auth.signInWithOAuth({
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="label" htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input"
-                placeholder="toi@exemple.fr"
-              />
+              <input id="email" type="email" required autoComplete="email"
+                value={email} onChange={(e) => setEmail(e.target.value)}
+                className="input" placeholder="toi@exemple.fr" />
             </div>
-
             <div>
               <label className="label" htmlFor="password">Mot de passe</label>
               <div className="relative">
-                <input
-                  id="password"
-                  type={showPass ? "text" : "password"}
-                  required
-                  autoComplete="current-password"
-                  value={password}
+                <input id="password" type={showPass ? "text" : "password"} required
+                  autoComplete="current-password" value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input pr-10"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
+                  className="input pr-10" placeholder="••••••••" />
+                <button type="button" onClick={() => setShowPass(!showPass)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                   {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -134,7 +107,6 @@ await supabase.auth.signInWithOAuth({
                 </Link>
               </div>
             </div>
-
             <button type="submit" disabled={loading} className="btn-primary w-full justify-center mt-2">
               {loading ? "Connexion..." : "Se connecter"}
             </button>

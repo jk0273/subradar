@@ -16,50 +16,41 @@ export default function RegisterPage() {
   const [done, setDone] = useState(false);
 
   const supabase = createClient();
-
   const passwordStrong = password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-
     if (!passwordStrong) {
       setError("Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.");
       return;
     }
-
     setLoading(true);
-
     const { error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { name }, emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
-
     if (authError) {
       setError(authError.message === "User already registered"
         ? "Un compte existe déjà avec cet email."
-        : "Une erreur est survenue. Réessaie."
-      );
+        : "Une erreur est survenue. Réessaie.");
       setLoading(false);
       return;
     }
-
     setDone(true);
   }
 
   async function handleGoogleRegister() {
     setLoading(true);
-   await supabase.auth.signInWithOAuth({
-  provider: "google",
-  options: {
-    redirectTo: `${window.location.origin}/auth/callback`,
-    queryParams: {
-      access_type: "offline",
-      prompt: "consent",
-    },
-  },
-});
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: { access_type: "offline", prompt: "consent" },
+      },
+    });
+  }
 
   if (done) {
     return (
@@ -71,7 +62,6 @@ export default function RegisterPage() {
           <h2 className="text-xl font-bold text-slate-900 mb-2">Vérifie tes emails !</h2>
           <p className="text-slate-500 text-sm">
             Un lien de confirmation a été envoyé à <strong>{email}</strong>.
-            Clique dessus pour activer ton compte.
           </p>
           <Link href="/login" className="btn-secondary mt-6 inline-flex">Retour à la connexion</Link>
         </div>
@@ -120,18 +110,21 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
               <label className="label" htmlFor="name">Prénom</label>
-              <input id="name" type="text" required autoComplete="given-name" value={name}
-                onChange={(e) => setName(e.target.value)} className="input" placeholder="Sophie" />
+              <input id="name" type="text" required autoComplete="given-name"
+                value={name} onChange={(e) => setName(e.target.value)}
+                className="input" placeholder="Sophie" />
             </div>
             <div>
               <label className="label" htmlFor="email">Email</label>
-              <input id="email" type="email" required autoComplete="email" value={email}
-                onChange={(e) => setEmail(e.target.value)} className="input" placeholder="toi@exemple.fr" />
+              <input id="email" type="email" required autoComplete="email"
+                value={email} onChange={(e) => setEmail(e.target.value)}
+                className="input" placeholder="toi@exemple.fr" />
             </div>
             <div>
               <label className="label" htmlFor="password">Mot de passe</label>
-              <input id="password" type="password" required autoComplete="new-password" value={password}
-                onChange={(e) => setPassword(e.target.value)} className="input" placeholder="Minimum 8 caractères" />
+              <input id="password" type="password" required autoComplete="new-password"
+                value={password} onChange={(e) => setPassword(e.target.value)}
+                className="input" placeholder="Minimum 8 caractères" />
               {password && (
                 <div className={`mt-1.5 text-xs flex items-center gap-1 ${passwordStrong ? "text-green-600" : "text-slate-400"}`}>
                   <div className={`w-1.5 h-1.5 rounded-full ${passwordStrong ? "bg-green-500" : "bg-slate-300"}`} />
