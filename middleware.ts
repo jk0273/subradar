@@ -57,7 +57,7 @@ export async function middleware(request: NextRequest) {
   const ip =
     request.headers.get("cf-connecting-ip") ??
     request.headers.get("x-real-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+    (request.headers.get("x-forwarded-for")?.split(",")[0] ?? "").trim() ??
     "unknown";
 
   // ── 2. Global rate limit (100 req / 10 sec per IP) ─────────────────────────
