@@ -15,6 +15,20 @@ function rateLimit(ip: string, limit: number, windowMs: number): { allowed: bool
   return { allowed: true, remaining: limit - record.count };
 }
 
+function getClientIp(request: NextRequest): string {
+  const cfIp = request.headers.get("cf-connecting-ip");
+  if (cfIp) return cfIp;
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) return realIp;
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const parts = forwarded.split(",");
+    const first = parts[0];
+    if (first) return first.trim();
+  }
+  return "unknown";
+}
+
 const PROTECTED_ROUTES = ["/dashboard", "/connect", "/subscriptions", "/settings", "/api/scan", "/api/subscriptions", "/api/stripe/checkout", "/api/stripe/portal", "/api/user"];
 const AUTH_ROUTES = ["/login", "/register"];
 const API_LIMITS: Record<string, [number, number]> = {
@@ -27,16 +41,10 @@ const API_LIMITS: Record<string, [number, number]> = {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const ip = getClientIp(request);
 
-  const ip = (
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-real-ip") ??
-    (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() ??
-    "unknown"
-  );
-
-  const global = rateLimit(ip, 100, 10_000);
-  if (!global.allowed) {
+  const globalLimit = rateLimit(ip, 100, 10_000);
+  if (!globalLimit.allowed) {
     return new NextResponse("Too Many Requests", {
       status: 429,
       headers: { "Retry-After": "10", "X-RateLimit-Remaining": "0" },
@@ -108,7 +116,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  response.headers.set("X-RateLimit-Remaining", String(global.remaining));
+  response.headers.set("X-RateLimit-Remaining", String(globalLimit.remaining));
   response.headers.set("X-Request-ID", crypto.randomUUID());
 
   return response;
