@@ -28,11 +28,12 @@ const API_LIMITS: Record<string, [number, number]> = {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const ip =
+  const ip = (
     request.headers.get("cf-connecting-ip") ??
     request.headers.get("x-real-ip") ??
-    (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() ||
-    "unknown";
+    (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() ??
+    "unknown"
+  );
 
   const global = rateLimit(ip, 100, 10_000);
   if (!global.allowed) {
